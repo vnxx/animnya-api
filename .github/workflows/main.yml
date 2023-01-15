@@ -18,16 +18,14 @@ jobs:
           go-version: 1.19
       
       - name: Build
-        id: go
         run: go build
-      
+        
       - name: Publish
-        if: steps 
-        uses: nogsantos/scp-deploy@master
+        uses: appleboy/scp-action@master
         with:
-          src: animenya.site
+          source: "animenya.site"
           host: ${{ secrets.SSH_HOST }}
-          remote: ${{ secrets.SSH_DIR }}
+          username: ${{ secrets.SSH_USER }}
           port: ${{ secrets.SSH_PORT }}
-          user: ${{ secrets.SSH_USER }}
+          target: ${{ secrets.SSH_DIR }}
           key: ${{ secrets.SSH_KEY }}
