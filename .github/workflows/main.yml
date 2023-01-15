@@ -19,10 +19,7 @@ jobs:
       
       - name: Build
         id: go
-        run: go build -v
-      
-      - run: pwd
-      - run: ls
+        run: go build
       
       - name: Publish
         if: steps 
