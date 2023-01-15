@@ -8,7 +8,6 @@ on:
 jobs:
   deployment:
     runs-on: ubuntu-latest
-    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v3
@@ -19,12 +18,17 @@ jobs:
           go-version: 1.19
       
       - name: Build
+        id: go
         run: go build -v
       
+      - run: pwd
+      - run: ls
+      
       - name: Publish
+        if: steps 
         uses: nogsantos/scp-deploy@master
         with:
-          src: ./animenya.site
+          src: animenya.site
           host: ${{ secrets.SSH_HOST }}
           remote: ${{ secrets.SSH_DIR }}
           port: ${{ secrets.SSH_PORT }}
