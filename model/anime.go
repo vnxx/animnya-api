@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"animenya.site/data"
 	"animenya.site/db"
 )
 
@@ -16,7 +17,7 @@ type Anime struct {
 	Synopsis      *string    `json:"synopsis,omitempty"`
 	CoverURL      string     `json:"cover_url"`
 	TrailerURL    *string    `json:"trailer_url,omitempty"`
-	TotalEpisode  *int       `json:"total_episodes,omitempty"`
+	TotalEpisode  *string    `json:"total_episodes,omitempty"`
 	Studio        *string    `json:"studio,omitempty"`
 	Season        *string    `json:"season,omitempty"`
 	ReleaseDate   *string    `json:"release_date,omitempty"`
@@ -30,7 +31,7 @@ func (a *Anime) Get(db db.DBInterface) error {
 	}
 
 	animeID := strconv.Itoa(a.ID)
-	content, err := db.Get(&animeID)
+	content, err := db.Get(data.DBAnime, &animeID)
 	if err != nil {
 		return err
 	}
@@ -60,7 +61,7 @@ func (a *Anime) Save(db db.DBInterface, forceSave bool) error {
 	}
 
 	animeID := strconv.Itoa(a.ID)
-	err = db.Save(&animeID, &_content)
+	err = db.Save(data.DBAnime, &animeID, &_content)
 	if err != nil {
 		return err
 	}

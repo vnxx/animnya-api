@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"animenya.site/data"
 	"animenya.site/model"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
@@ -27,7 +28,7 @@ func (h *Handler) LatestAnimeEpisode(c *fiber.Ctx) error {
 
 	for _, episode := range episodes {
 		animeID := strconv.Itoa(episode.Anime.ID)
-		_anime, err := h.DB.Get(&animeID)
+		_anime, err := h.DB.Get(data.DBAnime, &animeID)
 		if err != nil {
 			if err.Error() != "NOT_FOUND" {
 				log.Error().Err(err).Msg("anime.AllAnime: failed to get anime from db")
@@ -104,7 +105,7 @@ func (h *Handler) Anime(c *fiber.Ctx) error {
 	}
 
 	animeID := c.Params("anime_id")
-	_anime, err := h.DB.Get(&animeID)
+	_anime, err := h.DB.Get(data.DBAnime, &animeID)
 	if err != nil {
 		if err.Error() != "NOT_FOUND" {
 			log.Error().Err(err).Msg("anime.Anime: failed to get anime from db")

@@ -159,17 +159,12 @@ func (f *Fetcher) GetAnimeDetailByAnimeSlug(ctx context.Context, animeSlug *stri
 		anime.TrailerURL = trailerURL
 	}
 
-	_totalEpisode, err := MatchStringByRegex(`Total Episode.*>.(.*)<`, *body)
+	totalEpisode, err := MatchStringByRegex(`Total Episode.*>.(.*)<`, *body)
 	if err != nil {
 		log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse total episode")
 	}
-	if _totalEpisode != nil {
-		totalEpisode, err := strconv.Atoi(*_totalEpisode)
-		if err != nil {
-			log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse total episode to int")
-		}
-
-		anime.TotalEpisode = &totalEpisode
+	if totalEpisode != nil {
+		anime.TotalEpisode = totalEpisode
 	}
 
 	studio, err := MatchStringByRegex(`Studio.*"tag".(.*)</a`, *body)
