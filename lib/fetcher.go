@@ -94,7 +94,7 @@ func (f *Fetcher) getAnimeEpisode(ctx context.Context, endpoint *string) ([]*mod
 }
 
 func (f *Fetcher) GetLatestAnimeEpisode(ctx context.Context, params string) ([]*model.Episode, error) {
-	endpoint := "https://samehadaku.win/wp-json/wp/v2/posts?_fields=id,title,date,slug,categories,yoast_head_json.og_image&" + params
+	endpoint := "https://samehadaku.win/wp-json/wp/v2/posts?_fields=id,title,date,slug,categories,yoast_head_json.og_image&per_page=20&" + params
 	results, err := f.getAnimeEpisode(ctx, &endpoint)
 	if err != nil {
 		return nil, err
