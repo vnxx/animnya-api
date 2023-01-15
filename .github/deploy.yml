@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  push:
+    branchses:
+      - main
+
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+      
+      - name: Build
+        run: go build -v ./...
+      
+      - name: Publish
+        uses: nogsantos/scp-deploy@master
+        with:
+          src: ./animenya.site
+          host: ${{ secrets.SSH_HOST }}
+          remote: ${{ secrets.SSH_DIR }}
+          port: ${{ secrets.SSH_PORT }}
+          user: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
