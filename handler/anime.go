@@ -36,7 +36,7 @@ func (h *Handler) LatestAnimeEpisode(c *fiber.Ctx) error {
 		}
 
 		var anime model.Anime
-		if *_anime != nil {
+		if _anime != nil {
 			if err := json.Unmarshal(*_anime, &anime); err != nil {
 				log.Error().Err(err).Msg("anime.AllAnime: failed to unmarshal anime from db")
 				continue
