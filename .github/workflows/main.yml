@@ -29,3 +29,16 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           target: ${{ secrets.SSH_DIR }}
           key: ${{ secrets.SSH_KEY }}
+      
+      - name: Restart Server
+        uses: appleboy/ssh-action@master
+        with: 
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd ${{ secrets.SSH_DIR }}
+            ./stop
+            ./run.sh
+        
