@@ -39,6 +39,6 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd ${{ secrets.SSH_DIR }}
-            ./stop
-            ./run.sh
+            ./stop.sh
+            nohup ./run.sh 2>&1 log.txt
         
