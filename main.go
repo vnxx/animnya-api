@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
-	"animenya.site/cache"
 	"animenya.site/db"
 	"animenya.site/handler"
 	"animenya.site/lib"
 	"animenya.site/router"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 )
@@ -21,15 +22,17 @@ func main() {
 	}
 
 	app := fiber.New()
+	app.Use(cache.New(cache.Config{
+		Expiration: time.Minute * 15,
+	}))
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
-		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowHeaders: "*",
 	}))
 
 	db := db.New()
-	cache := cache.New()
 	fetch := lib.NewFetcher()
-	handler := handler.New(cache, fetch, db)
+	handler := handler.New(fetch, db)
 
 	router.SetupRoutes(app, handler)
 	app.Listen(fmt.Sprintf(":%s", os.Getenv("PORT")))
