@@ -2,7 +2,12 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
 	"strconv"
+	"time"
 
 	"animenya.site/data"
 	"animenya.site/model"
@@ -92,6 +97,8 @@ func (h *Handler) LatestAnimeEpisode(c *fiber.Ctx) error {
 			log.Error().Err(err).Msg("anime.AllAnime: failed to save anime to db")
 			continue
 		}
+
+		episode.Anime.CoverURL = fmt.Sprintf(os.Getenv("API_URL")+"/anime/%d/cover", anime.ID)
 	}
 
 	result.Data = episodes
@@ -175,17 +182,77 @@ func (h *Handler) Anime(c *fiber.Ctx) error {
 		}
 
 		if _anime != nil {
-			anime.Update(h.DB, _anime)
+			if err := anime.Update(h.DB, _anime); err != nil {
+				log.Error().Err(err).Msg("anime.Anime: failed to update anime to db")
+			}
 		}
 	}
 
-	if err != nil {
-		log.Error().Err(err).Msg("anime.Anime: failed to save anime to db")
-	}
-
+	anime.CoverURL = fmt.Sprintf(os.Getenv("API_URL")+"/anime/%d/cover", anime.ID)
 	result.Data = anime
 	result.Data.CacheExpireAt = nil
 	return c.Status(fiber.StatusOK).JSON(result)
+}
+
+func (h *Handler) AnimeCover(c *fiber.Ctx) error {
+	c.Set("Content-Type", "image/jpeg")
+
+	animeID := c.Params("anime_id")
+	_anime, err := h.DB.Get(data.DBAnime, &animeID)
+	if err != nil {
+		if err.Error() == "NOT_FOUND" {
+			return c.Status(fiber.StatusNotFound).Send([]byte{})
+		}
+
+		log.Error().Err(err).Msg("anime.AnimeCover: failed to get anime from db")
+		return c.Status(fiber.StatusInternalServerError).Send([]byte{})
+	}
+
+	var anime *model.Anime
+	if _anime != nil {
+		if err := json.Unmarshal(*_anime, &anime); err != nil {
+			log.Error().Err(err).Msg("anime.AnimeCover: failed to unmarshal anime from db")
+			return c.Status(fiber.StatusNotFound).Send([]byte{})
+		}
+	}
+
+	if anime.CoverURL == "" {
+		return c.Status(fiber.StatusNotFound).Send([]byte{})
+	}
+
+	req, err := http.NewRequest("GET", anime.CoverURL, nil)
+	if err != nil {
+		log.Error().Err(err).Msg("anime.AnimeCover: failed to create request")
+		return c.Status(fiber.StatusInternalServerError).Send([]byte{})
+	}
+
+	req.Header.Set("referer", "https://samehadaku.win")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Error().Err(err).Msg("anime.AnimeCover: failed to get cover")
+		return c.Status(fiber.StatusInternalServerError).Send([]byte{})
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		log.Error().Err(err).Msg("anime.AnimeCover: failed to get cover")
+		return c.Status(fiber.StatusInternalServerError).Send([]byte{})
+	}
+
+	cover, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Error().Err(err).Msg("anime.AnimeCover: failed to read cover")
+		return c.Status(fiber.StatusInternalServerError).Send([]byte{})
+	}
+
+	if anime.IsDataComplete() {
+		cacheDuration := time.Hour * 24 * 30
+		c.Response().Header.Add("Cache-Time", fmt.Sprintf("%.0f", cacheDuration.Seconds()))
+	} else {
+		c.Response().Header.Add("Cache-Time", "0")
+	}
+	return c.Status(fiber.StatusOK).Send(cover)
 }
 
 func (h *Handler) Episode(c *fiber.Ctx) error {
@@ -255,6 +322,6 @@ func (h *Handler) Episode(c *fiber.Ctx) error {
 	result.Data.Anime.ID = anime.ID
 	result.Data.Anime.Slug = anime.Slug
 	result.Data.Anime.Title = anime.Title
-	result.Data.Anime.CoverURL = anime.CoverURL
+	result.Data.Anime.CoverURL = fmt.Sprintf(os.Getenv("API_URL")+"/anime/%d/cover", anime.ID)
 	return c.Status(fiber.StatusOK).JSON(result)
 }

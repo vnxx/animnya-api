@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"animenya.site/db"
@@ -22,12 +23,19 @@ func main() {
 	}
 
 	app := fiber.New()
-	app.Use(cache.New(cache.Config{
-		Expiration: time.Minute * 15,
-	}))
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
-		AllowHeaders: "*",
+		AllowMethods: "GET",
+	}))
+	app.Use(cache.New(cache.Config{
+		ExpirationGenerator: func(c *fiber.Ctx, cfg *cache.Config) time.Duration {
+			expiration := time.Minute * 10
+			newCacheTime, _ := strconv.Atoi(c.GetRespHeader("Cache-Time", fmt.Sprintf("%.0f", expiration.Seconds())))
+			return time.Second * time.Duration(newCacheTime)
+		},
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.Path()
+		},
 	}))
 
 	db := db.New()
