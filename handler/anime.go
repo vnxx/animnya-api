@@ -149,7 +149,10 @@ func (h *Handler) Anime(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(result)
 	}
 
-	slug := episodes[0].Anime.Slug
+	slug := anime.Slug
+	if slug == "" {
+		slug = episodes[0].Anime.Slug
+	}
 
 	for _, episode := range episodes {
 		episode.Anime = nil
