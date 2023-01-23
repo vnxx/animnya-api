@@ -54,25 +54,25 @@ func (f *Fetcher) getAnimeEpisode(ctx context.Context, endpoint *string) ([]*mod
 
 		title, err := MatchStringByRegex(`(.*).(?:Episode.*)`, item.Title.Rendered)
 		if err != nil {
-			log.Error().Err(err).Msg("fetcher.GetLatestAnimeEpisode: failed to parse title")
+			log.Error().Err(err).Msg("fetcher.getAnimeEpisode: failed to parse title")
 			return nil, err
 		}
 
 		episode, err := MatchStringByRegex(`(?:Episode.)(.*)`, item.Title.Rendered)
 		if err != nil {
-			log.Error().Err(err).Msg("fetcher.GetLatestAnimeEpisode: failed to parse episode")
+			log.Error().Err(err).Msg("fetcher.getAnimeEpisode: failed to parse episode")
 			return nil, err
 		}
 
 		slug, err := MatchStringByRegex(`(.*)-(?:episode.*)`, item.Slug)
 		if err != nil {
-			log.Error().Err(err).Msg("fetcher.GetLatestAnimeEpisode: failed to parse slug")
+			log.Error().Err(err).Msg("fetcher.getAnimeEpisode: failed to parse slug")
 			return nil, err
 		}
 
 		date, err := time.Parse("2006-01-02T15:04:05", item.Date)
 		if err != nil {
-			log.Error().Err(err).Msg("fetcher.GetLatestAnimeEpisode: failed to parse date")
+			log.Error().Err(err).Msg("fetcher.getAnimeEpisode: failed to parse date")
 			return nil, err
 		}
 
