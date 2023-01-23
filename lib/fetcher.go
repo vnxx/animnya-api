@@ -282,6 +282,14 @@ func (f *Fetcher) Do(ctx context.Context, url string, method string, target inte
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("STATUS_CODE_NOT_OK")
+	}
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, fmt.Errorf("NOT_FOUND")
+	}
+
 	if target != nil {
 		if err := json.NewDecoder(resp.Body).Decode(target); err != nil {
 			log.Error().Err(err).Msg("fetcher.Do: failed to decode response body")

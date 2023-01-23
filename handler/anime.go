@@ -24,6 +24,10 @@ func (h *Handler) LatestAnimeEpisode(c *fiber.Ctx) error {
 
 	episodes, err := h.Fetcher.GetLatestAnimeEpisode(c.Context(), "")
 	if err != nil {
+		if err.Error() == "NOT_FOUND" {
+			return c.Status(fiber.StatusOK).JSON(result)
+		}
+
 		log.Error().Err(err).Msg("anime.AllAnime: failed to get anime list")
 		return c.Status(fiber.StatusInternalServerError).JSON(result)
 	}
@@ -131,6 +135,11 @@ func (h *Handler) Anime(c *fiber.Ctx) error {
 	// TODO: more than 100 episodes
 	episodes, err := h.Fetcher.GetAllEpisodesByAnimeID(c.Context(), animeID)
 	if err != nil {
+		if err.Error() == "NOT_FOUND" {
+			result.Error = "NOT_FOUND"
+			return c.Status(fiber.StatusNotFound).JSON(result)
+		}
+
 		log.Error().Err(err).Msg("anime.Anime: failed to get anime episodes")
 		return c.Status(fiber.StatusInternalServerError).JSON(result)
 	}
@@ -177,6 +186,11 @@ func (h *Handler) Anime(c *fiber.Ctx) error {
 	if !anime.IsDataComplete() || anime.IsCacheExpired() {
 		_anime, err := h.Fetcher.GetAnimeDetailByAnimeSlug(c.Context(), &slug)
 		if err != nil {
+			if err.Error() == "NOT_FOUND" {
+				result.Error = "NOT_FOUND"
+				return c.Status(fiber.StatusNotFound).JSON(result)
+			}
+
 			log.Error().Err(err).Msg("anime.Anime: failed to get anime detail")
 			return c.Status(fiber.StatusInternalServerError).JSON(result)
 		}
@@ -302,6 +316,11 @@ func (h *Handler) Episode(c *fiber.Ctx) error {
 	if result.Data.Watches == nil || anime.IsCacheExpired() {
 		watches, err := h.Fetcher.GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(c.Context(), &episodeID, &result.Data.Slug)
 		if err != nil {
+			if err.Error() == "NOT_FOUND" {
+				result.Error = "NOT_FOUND"
+				return c.Status(fiber.StatusNotFound).JSON(result)
+			}
+
 			log.Error().Err(err).Msg("anime.Episode: failed to get episode watches")
 			result.Error = "FAILED_TO_GET_EPISODE_WATCHES"
 			return c.Status(fiber.StatusInternalServerError).JSON(result)
