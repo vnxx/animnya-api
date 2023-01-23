@@ -40,6 +40,7 @@ jobs:
           script: |
             cd ${{ secrets.SSH_DIR }}
             ./stop.sh
-            nohup ./run.sh >/dev/null 2>&1 &
+            rm -rf ./log.txt
+            ./run.sh 
             exit
         
