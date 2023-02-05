@@ -177,6 +177,8 @@ func (h *Handler) Anime(c *fiber.Ctx) error {
 		}
 	}
 
+	anime.ReOrderedEpisodes()
+
 	anime.CoverURL = fmt.Sprintf(os.Getenv("API_URL")+"/anime/%d/cover", anime.ID)
 	anime.PostID = nil
 	result.Data = anime
