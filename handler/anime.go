@@ -123,71 +123,19 @@ func (h *Handler) Anime(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusInternalServerError).JSON(result)
 		}
 	}
-
-	var anime *model.Anime
-	if _anime != nil {
-		if err := json.Unmarshal(*_anime, &anime); err != nil {
-			log.Error().Err(err).Msg("anime.Anime: failed to unmarshal anime from db")
-			return c.Status(fiber.StatusInternalServerError).JSON(result)
-		}
+	if _anime == nil {
+		result.Error = "NOT_FOUND"
+		return c.Status(fiber.StatusNotFound).JSON(result)
 	}
 
-	// TODO: more than 100 episodes
-	episodes, err := h.Fetcher.GetAllEpisodesByAnimeID(c.Context(), animeID)
-	if err != nil {
-		if err.Error() == "NOT_FOUND" {
-			result.Error = "NOT_FOUND"
-			return c.Status(fiber.StatusNotFound).JSON(result)
-		}
-
-		log.Error().Err(err).Msg("anime.Anime: failed to get anime episodes")
+	var anime *model.Anime
+	if err := json.Unmarshal(*_anime, &anime); err != nil {
+		log.Error().Err(err).Msg("anime.Anime: failed to unmarshal anime from db")
 		return c.Status(fiber.StatusInternalServerError).JSON(result)
 	}
 
-	if episodes == nil {
-		result.Error = "DATA_NOT_FOUND"
-		return c.Status(fiber.StatusNotFound).JSON(result)
-	}
-
-	slug := anime.Slug
-	if slug == "" {
-		slug = episodes[0].Anime.Slug
-	}
-
-	for _, episode := range episodes {
-		episode.Anime = nil
-	}
-
-	if anime == nil {
-		anime.Episodes = append(anime.Episodes, episodes...)
-	} else {
-		if anime.Episodes == nil {
-			anime.Episodes = episodes
-		} else {
-			for _, episode := range episodes {
-				var found bool
-				for _, _episode := range anime.Episodes {
-					if _episode.ID == episode.ID {
-						found = true
-						break
-					}
-				}
-
-				if !found {
-					anime.Episodes = append(anime.Episodes, episode)
-				}
-			}
-		}
-	}
-
-	if anime.Episodes == nil && anime.Slug == "" {
-		result.Error = "DATA_NOT_FOUND"
-		return c.Status(fiber.StatusNotFound).JSON(result)
-	}
-
-	anime.ReOrderedEpisodes()
 	if !anime.IsDataComplete() || anime.IsCacheExpired() {
-		_anime, err := h.Fetcher.GetAnimeDetailByAnimeSlug(c.Context(), &slug)
+		_anime, err := h.Fetcher.GetAnimeDetailByAnimeSlug(c.Context(), &anime.Slug)
 		if err != nil {
 			if err.Error() == "NOT_FOUND" {
 				result.Error = "NOT_FOUND"
@@ -195,17 +143,42 @@ func (h *Handler) Anime(c *fiber.Ctx) error {
 			}
 
 			log.Error().Err(err).Msg("anime.Anime: failed to get anime detail")
+			result.Error = "INTERNAL_SERVER_ERROR"
 			return c.Status(fiber.StatusInternalServerError).JSON(result)
 		}
 
-		if _anime != nil {
-			if err := anime.Update(h.DB, _anime); err != nil {
-				log.Error().Err(err).Msg("anime.Anime: failed to update anime to db")
+		if _anime == nil {
+			result.Error = "NOT_FOUND"
+			return c.Status(fiber.StatusNotFound).JSON(result)
+		}
+
+		anime.PostID = _anime.PostID
+		anime.CoverURL = _anime.CoverURL
+		anime.TrailerURL = _anime.TrailerURL
+		anime.TotalEpisode = _anime.TotalEpisode
+		anime.Studio = _anime.Studio
+
+		_anime, err = h.Fetcher.GetAnimeDetailByPostID(c.Context(), _anime.PostID)
+		if err != nil {
+			if err.Error() == "NOT_FOUND" {
+				result.Error = "NOT_FOUND"
+				return c.Status(fiber.StatusNotFound).JSON(result)
 			}
+
+			log.Error().Err(err).Msg("anime.Anime: failed to get anime detail")
+			result.Error = "INTERNAL_SERVER_ERROR"
+			return c.Status(fiber.StatusInternalServerError).JSON(result)
+		}
+
+		if err := anime.Update(h.DB, _anime); err != nil {
+			log.Error().Err(err).Msg("anime.Anime: failed to update anime to db")
+			result.Error = "INTERNAL_SERVER_ERROR"
+			return c.Status(fiber.StatusInternalServerError).JSON(result)
 		}
 	}
 
 	anime.CoverURL = fmt.Sprintf(os.Getenv("API_URL")+"/anime/%d/cover", anime.ID)
+	anime.PostID = nil
 	result.Data = anime
 	result.Data.CacheExpireAt = nil
 	return c.Status(fiber.StatusOK).JSON(result)
@@ -347,3 +320,25 @@ func (h *Handler) Episode(c *fiber.Ctx) error {
 	result.Data.Anime.CoverURL = fmt.Sprintf(os.Getenv("API_URL")+"/anime/%d/cover", anime.ID)
 	return c.Status(fiber.StatusOK).JSON(result)
 }
+
+// func (h *Handler) SearchAnime(c *fiber.Ctx) error {
+// 	var result struct {
+// 		Data  []*model.SimpleAnime `json:"data"`
+// 		Error any                  `json:"error"`
+// 	}
+
+// 	query := c.Query("query")
+// 	if query == "" {
+// 		return c.Status(fiber.StatusOK).JSON(result)
+// 	}
+
+// 	animes, err := h.Fetcher.SearchAnime(c.Context(), query)
+// 	if err != nil {
+// 		log.Error().Err(err).Msg("anime.SearchAnime: failed to search anime")
+// 		result.Error = "FAILED_TO_SEARCH_ANIME"
+// 		return c.Status(fiber.StatusInternalServerError).JSON(result)
+// 	}
+
+// 	result.Data = animes
+// 	return c.Status(fiber.StatusOK).JSON(result)
+// }

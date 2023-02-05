@@ -18,8 +18,10 @@ import (
 type FetcherInterface interface {
 	Do(context.Context, string, string, interface{}, io.Reader, *map[string]string) (*string, error)
 	GetLatestAnimeEpisode(ctx context.Context, params string) ([]*model.Episode, error)
-	GetAllEpisodesByAnimeID(ctx context.Context, animeID string) ([]*model.Episode, error)
+	GetAllEpisodesByAnimeID(ctx context.Context, animeID string) ([]*model.Episode, error) // deprecated: use GetAnimeDetailByPostID instead
 	GetAnimeDetailByAnimeSlug(ctx context.Context, animeSlug *string) (*model.Anime, error)
+	GetAnimeDetailByPostID(ctx context.Context, postID *int) (*model.Anime, error)
+	// GetAnimePostIDByAnimeSlug(ctx context.Context, animeSlug *string) (*int, error)
 	GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(ctx context.Context, episodeID *int, episodeSlug *string) ([]*model.Watch, error)
 }
 
@@ -86,7 +88,7 @@ func (f *Fetcher) getAnimeEpisode(ctx context.Context, endpoint *string) ([]*mod
 				Slug:     *slug,
 				CoverURL: coverURL,
 			},
-			CreatedAt: date,
+			CreatedAt: &date,
 		})
 	}
 
@@ -127,29 +129,45 @@ func (f *Fetcher) GetAnimeDetailByAnimeSlug(ctx context.Context, animeSlug *stri
 	var anime model.Anime
 	anime.Slug = *animeSlug
 
-	coverURL, err := MatchStringByRegex(`.*c="(.*)" class="anmsa`, *body)
+	_postID, err := MatchStringByRegex(`id="post-(.*)" clas`, *body)
 	if err != nil {
-		log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse cover url")
-	}
-	if coverURL != nil {
-		anime.CoverURL = *coverURL
+		log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse post id")
+		return nil, err
 	}
 
-	title, err := MatchStringByRegex(`class="anmsa" title="(.*)" alt.*rt"`, *body)
+	postID, err := strconv.Atoi(*_postID)
 	if err != nil {
-		log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse title")
-	}
-	if title != nil {
-		anime.Title = *title
+		log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse post id")
+		return nil, err
 	}
 
-	synopsis, err := MatchStringByRegex(`description".(.*)</div></div><div class="genre-info">`, *body)
-	if err != nil {
-		log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse synopsis")
+	if anime.PostID == nil {
+		anime.PostID = &postID
 	}
-	if synopsis != nil {
-		anime.Synopsis = synopsis
-	}
+
+	// coverURL, err := MatchStringByRegex(`.*c="(.*)" class="anmsa`, *body)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse cover url")
+	// }
+	// if coverURL != nil {
+	// 	anime.CoverURL = *coverURL
+	// }
+
+	// title, err := MatchStringByRegex(`class="anmsa" title="(.*)" alt.*rt"`, *body)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse title")
+	// }
+	// if title != nil {
+	// 	anime.Title = *title
+	// }
+
+	// synopsis, err := MatchStringByRegex(`description".(.*)</div></div><div class="genre-info">`, *body)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse synopsis")
+	// }
+	// if synopsis != nil {
+	// 	anime.Synopsis = synopsis
+	// }
 
 	trailerURL, err := MatchStringByRegex(`player-embed.*src="(.*)">"`, *body)
 	if err != nil {
@@ -175,24 +193,140 @@ func (f *Fetcher) GetAnimeDetailByAnimeSlug(ctx context.Context, animeSlug *stri
 		anime.Studio = studio
 	}
 
-	season, err := MatchStringByRegex(`Season..*season.*">(.*)</a></span>.*<span><b>Studio</b>`, *body)
-	if err != nil {
-		log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse season")
-	}
-	if season != nil {
-		anime.Season = season
+	// season, err := MatchStringByRegex(`Season..*season.*">(.*)</a></span>.*<span><b>Studio</b>`, *body)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse season")
+	// }
+	// if season != nil {
+	// 	anime.Season = season
+	// }
+
+	// releaseDate, err := MatchStringByRegex(`Rilis:.*b>(.*)</span`, *body)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse release date")
+	// }
+	// if releaseDate != nil {
+	// 	anime.ReleaseDate = releaseDate
+	// }
+
+	return &anime, nil
+}
+
+func (f *Fetcher) GetAnimeDetailByPostID(ctx context.Context, postID *int) (*model.Anime, error) {
+	if postID == nil {
+		return nil, nil
 	}
 
-	releaseDate, err := MatchStringByRegex(`Rilis:.*b>(.*)</span`, *body)
+	endpoint := fmt.Sprintf(`https://samehadaku.win/wp-json/apk/anime/?id=%d`, *postID)
+	var _animeRaw []*model.AnimeDetailRaw
+	_, err := f.Do(ctx, endpoint, http.MethodGet, &_animeRaw, nil, nil)
 	if err != nil {
-		log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse release date")
+		return nil, err
 	}
-	if releaseDate != nil {
-		anime.ReleaseDate = releaseDate
+
+	if _animeRaw == nil {
+		return nil, nil
+	}
+
+	animeRaw := (_animeRaw)[0]
+	var anime model.Anime
+	anime.Title = animeRaw.Title
+	anime.CoverURL = animeRaw.Cover
+	anime.Duration = &animeRaw.Duration
+	anime.Synopsis = &animeRaw.Synopsis
+	anime.ReleaseDate = &animeRaw.Released
+	anime.Status = &animeRaw.Status
+	anime.Score = &animeRaw.Score
+
+	for _, _genre := range animeRaw.Genre {
+		var genre model.Genre
+		genre.Name = _genre.Name
+
+		slug, err := MatchStringByRegex(`&val=(.*)`, _genre.Slug)
+		if err != nil {
+			log.Error().Err(err).Msg("fetcher.GetAnimeDetailByPostID: failed to parse genre slug")
+			continue
+		}
+
+		genre.Slug = *slug
+		if anime.Genre == nil {
+			anime.Genre = &[]model.Genre{}
+		}
+
+		*anime.Genre = append(*anime.Genre, genre)
+	}
+
+	for _, episodeRaw := range animeRaw.Data {
+		var episode model.Episode
+		episode.Episode = episodeRaw.Episode
+
+		_id, err := MatchStringByRegex(`&id=(.*)`, episodeRaw.URL)
+		if err != nil {
+			log.Error().Err(err).Msg("fetcher.GetAnimeDetailByPostID: failed to parse episode id")
+			continue
+		}
+		if _id == nil {
+			log.Error().Err(err).Msg("fetcher.GetAnimeDetailByPostID: failed to parse episode id")
+			continue
+		}
+
+		id, err := strconv.Atoi(*_id)
+		if err != nil {
+			log.Error().Err(err).Msg("fetcher.GetAnimeDetailByPostID: failed to parse episode id")
+			continue
+		}
+		episode.ID = id
+
+		for i, player := range episodeRaw.Player {
+			var watch model.Watch
+			streamURL, err := MatchStringByRegex(`src.+"(.*)".F`, player.URL)
+
+			if err != nil {
+				log.Error().Err(err).Msg("fetcher.GetEpisodeDetailByEpisodeSlug: failed to parse streamURL")
+				continue
+			}
+			if streamURL == nil {
+				log.Error().Err(err).Msg("fetcher.GetEpisodeDetailByEpisodeSlug: failed to parse streamURL")
+				continue
+			}
+
+			watch.ID = i + 1
+			watch.Source = player.Title
+			watch.StreamURL = *streamURL
+			episode.Watches = append(episode.Watches, &watch)
+		}
+
+		anime.Episodes = append(anime.Episodes, &episode)
 	}
 
 	return &anime, nil
 }
+
+// func (f *Fetcher) GetAnimePostIDByAnimeSlug(ctx context.Context, animeSlug *string) (*int, error) {
+// 	if animeSlug == nil {
+// 		return nil, nil
+// 	}
+
+// 	endpoint := "https://samehadaku.win/anime/" + *animeSlug
+// 	body, err := f.Do(ctx, endpoint, http.MethodGet, nil, nil, nil)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	_postID, err := MatchStringByRegex(`id="post-(.*)" clas`, *body)
+// 	if err != nil {
+// 		log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse post id")
+// 		return nil, err
+// 	}
+
+// 	postID, err := strconv.Atoi(*_postID)
+// 	if err != nil {
+// 		log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse post id")
+// 		return nil, err
+// 	}
+
+// 	return &postID, nil
+// }
 
 func (f *Fetcher) GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(ctx context.Context, episodeID *int, episodeSlug *string) ([]*model.Watch, error) {
 	if episodeSlug == nil {
@@ -261,6 +395,14 @@ func (f *Fetcher) GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(ctx context.Context
 
 	return watches, nil
 }
+
+// func (f *Fetcher) SearchAnime(ctx context.Context, query *string) ([]*model.Anime, error) {
+// 	if query == nil {
+// 		return nil, nil
+// 	}
+
+// 	endpoint := "https://samehadaku.win/?s=" + *query
+// }
 
 func (f *Fetcher) Do(ctx context.Context, url string, method string, target interface{}, body io.Reader, headers *map[string]string) (*string, error) {
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
