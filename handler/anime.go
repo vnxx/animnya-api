@@ -94,6 +94,8 @@ func (h *Handler) LatestAnimeEpisode(c *fiber.Ctx) error {
 				Episode:   episode.Episode,
 				CreatedAt: episode.CreatedAt,
 			}}
+
+			episode.Anime = &anime
 		}
 
 		err = anime.Save(h.DB, true)
