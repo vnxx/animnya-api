@@ -74,7 +74,6 @@ func (h *Handler) LatestAnimeEpisode(c *fiber.Ctx) error {
 				}
 
 				if !found {
-					episode.Anime = nil
 					anime.Episodes = append(anime.Episodes, &model.Episode{
 						ID:        episode.ID,
 						Slug:      episode.Slug,
