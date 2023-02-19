@@ -292,7 +292,7 @@ func (h *Handler) Episode(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(result)
 	}
 
-	if result.Data.Watches == nil || anime.IsCacheExpired() {
+	if result.Data.Watches == nil {
 		watches, err := h.Fetcher.GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(c.Context(), &episodeID, &result.Data.Slug)
 		if err != nil {
 			if err.Error() == "NOT_FOUND" {
@@ -312,7 +312,9 @@ func (h *Handler) Episode(c *fiber.Ctx) error {
 			}
 		}
 
-		anime.Save(h.DB, true)
+    if err := anime.Save(h.DB, true); err != nil {
+      log.Error().Err(err).Msg("anime.Episode: failed to save episode")
+    }
 		result.Data.Watches = watches
 	}
 
