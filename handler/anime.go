@@ -219,7 +219,7 @@ func (h *Handler) AnimeCover(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).Send([]byte{})
 	}
 
-	req.Header.Set("referer", "https://samehadaku.win")
+	req.Header.Set("referer", os.Getenv("SOURCE_URL"))
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"time"
 
@@ -96,7 +97,7 @@ func (f *Fetcher) getAnimeEpisode(ctx context.Context, endpoint *string) ([]*mod
 }
 
 func (f *Fetcher) GetLatestAnimeEpisode(ctx context.Context, params string) ([]*model.Episode, error) {
-	endpoint := "https://samehadaku.win/wp-json/wp/v2/posts?_fields=id,title,date,slug,categories,yoast_head_json.og_image&per_page=20&status=publish&" + params
+	endpoint := fmt.Sprintf("%s/wp-json/wp/v2/posts?_fields=id,title,date,slug,categories,yoast_head_json.og_image&per_page=20&status=publish&%s", os.Getenv("SOURCE_URL"), params)
 	results, err := f.getAnimeEpisode(ctx, &endpoint)
 	if err != nil {
 		return nil, err
@@ -106,7 +107,7 @@ func (f *Fetcher) GetLatestAnimeEpisode(ctx context.Context, params string) ([]*
 }
 
 func (f *Fetcher) GetAllEpisodesByAnimeID(ctx context.Context, animeID string) ([]*model.Episode, error) {
-	endpoint := "https://samehadaku.win/wp-json/wp/v2/posts?_fields=id,title,date,slug,categories,yoast_head_json.og_image&per_page=100&categories=" + animeID
+	endpoint := fmt.Sprintf("%s/wp-json/wp/v2/posts?_fields=id,title,date,slug,categories,yoast_head_json.og_image&per_page=100&categories=%s", os.Getenv("SOURCE_URL"), animeID)
 	results, err := f.getAnimeEpisode(ctx, &endpoint)
 	if err != nil {
 		return nil, err
@@ -120,7 +121,7 @@ func (f *Fetcher) GetAnimeDetailByAnimeSlug(ctx context.Context, animeSlug *stri
 		return nil, nil
 	}
 
-	endpoint := "https://samehadaku.win/anime/" + *animeSlug
+	endpoint := fmt.Sprintf("%s/anime/%s", os.Getenv("SOURCE_URL"), *animeSlug)
 	body, err := f.Do(ctx, endpoint, http.MethodGet, nil, nil, nil)
 	if err != nil {
 		return nil, err
@@ -217,7 +218,7 @@ func (f *Fetcher) GetAnimeDetailByPostID(ctx context.Context, postID *int) (*mod
 		return nil, nil
 	}
 
-	endpoint := fmt.Sprintf(`https://samehadaku.win/wp-json/apk/anime/?id=%d`, *postID)
+	endpoint := fmt.Sprintf(`%s/wp-json/apk/anime/?id=%d`, os.Getenv("SOURCE_URL"), *postID)
 	var _animeRaw []*model.AnimeDetailRaw
 	_, err := f.Do(ctx, endpoint, http.MethodGet, &_animeRaw, nil, nil)
 	if err != nil {
@@ -307,7 +308,7 @@ func (f *Fetcher) GetAnimeDetailByPostID(ctx context.Context, postID *int) (*mod
 // 		return nil, nil
 // 	}
 
-// 	endpoint := "https://samehadaku.win/anime/" + *animeSlug
+// 	endpoint := "https://samehadaku.run/anime/" + *animeSlug
 // 	body, err := f.Do(ctx, endpoint, http.MethodGet, nil, nil, nil)
 // 	if err != nil {
 // 		return nil, err
@@ -337,7 +338,7 @@ func (f *Fetcher) GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(ctx context.Context
 		return nil, fmt.Errorf("EPISODE_ID_NOT_FOUND")
 	}
 
-	endpoint := "https://samehadaku.win/" + *episodeSlug
+	endpoint := fmt.Sprintf("%s/%s", os.Getenv("SOURCE_URL") , *episodeSlug)
 	body, err := f.Do(ctx, endpoint, http.MethodGet, nil, nil, nil)
 	if err != nil {
 		return nil, err
@@ -345,7 +346,7 @@ func (f *Fetcher) GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(ctx context.Context
 
 	_watch, err := MatchAllStringByRegex(`data-nume=".*<span>(.*)</span`, *body)
 	if err != nil {
-		log.Error().Err(err).Msg("fetcher.GetEpisodeDetailByEpisodeSlug: failed to parse watch")
+		log.Error().Err(err).Msg("fetcher.GetEpisodeWatchesByEpisodeIDAndEpisodeSlug: failed to parse watch")
 		return nil, err
 	}
 	if _watch == nil {
@@ -361,24 +362,24 @@ func (f *Fetcher) GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(ctx context.Context
 		param.Set("nume", strconv.Itoa(i+1))
 		param.Set("type", "schtml")
 		playload := bytes.NewBufferString(param.Encode())
-		body, err = f.Do(ctx, "https://samehadaku.win/wp-admin/admin-ajax.php", http.MethodPost, nil, playload, &headers)
+		body, err = f.Do(ctx, fmt.Sprintf("%s/wp-admin/admin-ajax.php", os.Getenv("SOURCE_URL")), http.MethodPost, nil, playload, &headers)
 		if err != nil {
-			log.Error().Err(err).Msg("fetcher.GetEpisodeDetailByEpisodeSlug: failed to fetch watch")
+			log.Error().Err(err).Msg("fetcher.GetEpisodeWatchesByEpisodeIDAndEpisodeSlug: failed to fetch watch")
 			continue
 		}
 
 		if body == nil {
-			log.Error().Err(err).Msg("fetcher.GetEpisodeDetailByEpisodeSlug: failed to fetch watch")
+			log.Error().Err(err).Msg("fetcher.GetEpisodeWatchesByEpisodeIDAndEpisodeSlug: failed to fetch watch")
 			continue
 		}
 
 		streamURL, err := MatchStringByRegex(`src="(.*)".F`, *body)
 		if err != nil {
-			log.Error().Err(err).Msg("fetcher.GetEpisodeDetailByEpisodeSlug: failed to parse streamURL")
+			log.Error().Err(err).Msg("fetcher.GetEpisodeWatchesByEpisodeIDAndEpisodeSlug: failed to parse streamURL")
 			continue
 		}
 		if streamURL == nil {
-			log.Error().Err(err).Msg("fetcher.GetEpisodeDetailByEpisodeSlug: failed to parse streamURL")
+      log.Error().Err(err).Msg("fetcher.GetEpisodeWatchesByEpisodeIDAndEpisodeSlug: failed to parse streamURL")
 			continue
 		}
 
@@ -401,7 +402,7 @@ func (f *Fetcher) GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(ctx context.Context
 // 		return nil, nil
 // 	}
 
-// 	endpoint := "https://samehadaku.win/?s=" + *query
+// 	endpoint := "https://samehadaku.run/?s=" + *query
 // }
 
 func (f *Fetcher) Do(ctx context.Context, url string, method string, target interface{}, body io.Reader, headers *map[string]string) (*string, error) {
@@ -425,6 +426,7 @@ func (f *Fetcher) Do(ctx context.Context, url string, method string, target inte
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+    log.Error().Err(err).Msg("fetcher.Do: failed to do request, respose status code: " + fmt.Sprintf("%d", resp.StatusCode)) 
 		return nil, fmt.Errorf("STATUS_CODE_NOT_OK")
 	}
 
