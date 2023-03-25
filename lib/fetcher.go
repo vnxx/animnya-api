@@ -66,6 +66,10 @@ func (f *Fetcher) getAnimeEpisode(ctx context.Context, endpoint *string) ([]*mod
 			log.Error().Err(err).Msg("fetcher.getAnimeEpisode: failed to parse episode")
 			return nil, err
 		}
+    // probably this is a movie: title-movie
+    if episode == nil {
+      continue
+    }
 
 		slug, err := MatchStringByRegex(`(.*)-(?:episode.*)`, item.Slug)
 		if err != nil {
