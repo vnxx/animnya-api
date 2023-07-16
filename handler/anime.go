@@ -333,25 +333,12 @@ func (h *Handler) SearchAnime(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusOK).JSON(result)
 	}
 
-	anime, err := h.Fetcher.GetAnimeBySearch(c.Context(), &query)
+	anime, err := h.Fetcher.GetAnimeBySearch(c.Context(), h.DB, &query)
 	if err != nil {
 		log.Error().Err(err).Msg("anime.SearchAnime: failed to search anime")
 		result.Error = "FAILED_TO_SEARCH_ANIME"
 		return c.Status(fiber.StatusInternalServerError).JSON(result)
 	}
-
-  for _, a := range anime {
-    var _anime model.Anime
-    _anime.ID = a.AnimeID
-    _anime.Title = a.Title
-    _anime.CoverURL = a.CoverURL
-    if err := _anime.Save(h.DB, true); err != nil {
-      result.Error = "INTERNAL_SERVER_ERROR"
-      return c.Status(fiber.StatusInternalServerError).JSON(result)
-    }
-
-    a.CoverURL = fmt.Sprintf(os.Getenv("API_URL") + "/anime/%d/cover", a.AnimeID)
-  }
 
 	result.Data = anime
 	return c.Status(fiber.StatusOK).JSON(result)

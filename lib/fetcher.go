@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"animenya.site/db"
 	"animenya.site/model"
 	"github.com/rs/zerolog/log"
 )
@@ -23,7 +24,7 @@ type FetcherInterface interface {
 	GetAllEpisodesByAnimeID(ctx context.Context, animeID string) ([]*model.Episode, error) // deprecated: use GetAnimeDetailByPostID instead
 	GetAnimeDetailByAnimeSlug(ctx context.Context, animeSlug *string) (*model.Anime, error)
 	GetAnimeDetailByPostID(ctx context.Context, postID *int) (*model.Anime, error)
-  GetAnimeBySearch(ctc context.Context, query *string) ([]*model.SimpleAnime, error)
+  GetAnimeBySearch(ctc context.Context, db db.DBInterface, query *string) ([]*model.SimpleAnime, error)
 	// GetAnimePostIDByAnimeSlug(ctx context.Context, animeSlug *string) (*int, error)
 	GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(ctx context.Context, episodeID *int, episodeSlug *string) ([]*model.Watch, error)
 }
@@ -403,7 +404,7 @@ func (f *Fetcher) GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(ctx context.Context
 	return watches, nil
 }
 
-func (f *Fetcher) GetAnimeBySearch(ctx context.Context, query *string) ([]*model.SimpleAnime, error) {
+func (f *Fetcher) GetAnimeBySearch(ctx context.Context, db db.DBInterface, query *string) ([]*model.SimpleAnime, error) {
 	if query == nil {
 		return nil, nil
 	}
@@ -447,11 +448,10 @@ func (f *Fetcher) GetAnimeBySearch(ctx context.Context, query *string) ([]*model
     var _anime model.SimpleAnime
     _anime.Title = e.Title
     _anime.CoverURL = e.Img
-
+    
     eLink := strings.Replace(e.URL, "/anime", "", 1)
     for _, c := range categories {
       if(eLink == c.Link){
-        fmt.Println("OK")
         _anime.AnimeID = c.ID
         break;
       }
@@ -461,6 +461,16 @@ func (f *Fetcher) GetAnimeBySearch(ctx context.Context, query *string) ([]*model
       continue
     }
 
+    var temp model.Anime
+    temp.ID = _anime.AnimeID
+    temp.Title = _anime.Title
+    temp.CoverURL = _anime.CoverURL
+    temp.Slug = strings.Replace(strings.Replace(e.URL, os.Getenv("SOURCE_URL") + "/anime/", "", 1) , "/", "", 1) 
+    if err := temp.Save(db, true); err != nil {
+      return nil, err
+    }
+
+    _anime.CoverURL = fmt.Sprintf(os.Getenv("API_URL") + "/anime/%d/cover", _anime.AnimeID)
     anime = append(anime, &_anime)
   }
   
