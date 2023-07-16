@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 
 	"animenya.site/data"
 	"animenya.site/model"
@@ -188,6 +187,7 @@ func (h *Handler) Anime(c *fiber.Ctx) error {
 }
 
 func (h *Handler) AnimeCover(c *fiber.Ctx) error {
+  c.Response().Header.Add("Cache-Time", "0")
 	c.Set("Content-Type", "image/jpeg")
 
 	animeID := c.Params("anime_id")
@@ -239,12 +239,6 @@ func (h *Handler) AnimeCover(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).Send([]byte{})
 	}
 
-	if anime.IsDataComplete() {
-		cacheDuration := time.Hour * 24 * 30
-		c.Response().Header.Add("Cache-Time", fmt.Sprintf("%.0f", cacheDuration.Seconds()))
-	} else {
-		c.Response().Header.Add("Cache-Time", "0")
-	}
 	return c.Status(fiber.StatusOK).Send(cover)
 }
 
@@ -326,24 +320,39 @@ func (h *Handler) Episode(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(result)
 }
 
-// func (h *Handler) SearchAnime(c *fiber.Ctx) error {
-// 	var result struct {
-// 		Data  []*model.SimpleAnime `json:"data"`
-// 		Error any                  `json:"error"`
-// 	}
+func (h *Handler) SearchAnime(c *fiber.Ctx) error {
+  c.Response().Header.Add("Cache-Time", "0")
+	var result struct {
+		Data  []*model.SimpleAnime `json:"data"`
+		Error any                  `json:"error"`
+	}
+  result.Data = []*model.SimpleAnime{}
 
-// 	query := c.Query("query")
-// 	if query == "" {
-// 		return c.Status(fiber.StatusOK).JSON(result)
-// 	}
+	query := c.Query("query")
+	if query == "" || !(len(query) >= 3) {
+		return c.Status(fiber.StatusOK).JSON(result)
+	}
 
-// 	animes, err := h.Fetcher.SearchAnime(c.Context(), query)
-// 	if err != nil {
-// 		log.Error().Err(err).Msg("anime.SearchAnime: failed to search anime")
-// 		result.Error = "FAILED_TO_SEARCH_ANIME"
-// 		return c.Status(fiber.StatusInternalServerError).JSON(result)
-// 	}
+	anime, err := h.Fetcher.GetAnimeBySearch(c.Context(), &query)
+	if err != nil {
+		log.Error().Err(err).Msg("anime.SearchAnime: failed to search anime")
+		result.Error = "FAILED_TO_SEARCH_ANIME"
+		return c.Status(fiber.StatusInternalServerError).JSON(result)
+	}
 
-// 	result.Data = animes
-// 	return c.Status(fiber.StatusOK).JSON(result)
-// }
+  for _, a := range anime {
+    var _anime model.Anime
+    _anime.ID = a.AnimeID
+    _anime.Title = a.Title
+    _anime.CoverURL = a.CoverURL
+    if err := _anime.Save(h.DB, true); err != nil {
+      result.Error = "INTERNAL_SERVER_ERROR"
+      return c.Status(fiber.StatusInternalServerError).JSON(result)
+    }
+
+    a.CoverURL = fmt.Sprintf(os.Getenv("API_URL") + "/anime/%d/cover", a.AnimeID)
+  }
+
+	result.Data = anime
+	return c.Status(fiber.StatusOK).JSON(result)
+}

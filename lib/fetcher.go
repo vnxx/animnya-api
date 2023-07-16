@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"animenya.site/model"
@@ -22,6 +23,7 @@ type FetcherInterface interface {
 	GetAllEpisodesByAnimeID(ctx context.Context, animeID string) ([]*model.Episode, error) // deprecated: use GetAnimeDetailByPostID instead
 	GetAnimeDetailByAnimeSlug(ctx context.Context, animeSlug *string) (*model.Anime, error)
 	GetAnimeDetailByPostID(ctx context.Context, postID *int) (*model.Anime, error)
+  GetAnimeBySearch(ctc context.Context, query *string) ([]*model.SimpleAnime, error)
 	// GetAnimePostIDByAnimeSlug(ctx context.Context, animeSlug *string) (*int, error)
 	GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(ctx context.Context, episodeID *int, episodeSlug *string) ([]*model.Watch, error)
 }
@@ -401,13 +403,69 @@ func (f *Fetcher) GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(ctx context.Context
 	return watches, nil
 }
 
-// func (f *Fetcher) SearchAnime(ctx context.Context, query *string) ([]*model.Anime, error) {
-// 	if query == nil {
-// 		return nil, nil
-// 	}
+func (f *Fetcher) GetAnimeBySearch(ctx context.Context, query *string) ([]*model.SimpleAnime, error) {
+	if query == nil {
+		return nil, nil
+	}
 
-// 	endpoint := "https://samehadaku.run/?s=" + *query
-// }
+  var anime []*model.SimpleAnime
+
+  nonce := "0854d2c17b"
+  type EasthemeItemData struct {
+    Genre string  `json:"genre"`
+    Type  string  `json:"type"`
+    Score string  `json:"score"`
+  }
+
+  type EasthemeItem struct {
+    Title string  `json:"title"`
+    URL   string  `json:"url"`
+    Img   string  `json:"img"`
+    Data  EasthemeItemData `json:"data"`    
+  }
+
+	easthemeEndpoint := fmt.Sprintf("%s/wp-json/eastheme/search?nonce=%s&keyword=%s", os.Getenv("SOURCE_URL"), nonce, *query)
+ 	var easthemeMap = make(map[string]EasthemeItem)
+	_, err := f.Do(ctx, easthemeEndpoint, http.MethodGet, &easthemeMap, nil, nil)
+	if err != nil {
+		return nil, err
+	} 
+
+  type CategoryItem struct {
+    ID    int     `json:"id"`
+    Link  string  `json:"link"`
+    Name  string  `json:"name"`
+  }
+  categoriesEndpoint := fmt.Sprintf("%s/wp-json/wp/v2/categories?type=anime&_fields=id,anime,link&search=%s", os.Getenv("SOURCE_URL"), *query)
+  var categories []CategoryItem
+  _, err = f.Do(ctx, categoriesEndpoint, http.MethodGet, &categories, nil, nil)
+  if err != nil {
+    return nil, err
+  }
+
+  for _, e := range easthemeMap {
+    var _anime model.SimpleAnime
+    _anime.Title = e.Title
+    _anime.CoverURL = e.Img
+
+    eLink := strings.Replace(e.URL, "/anime", "", 1)
+    for _, c := range categories {
+      if(eLink == c.Link){
+        fmt.Println("OK")
+        _anime.AnimeID = c.ID
+        break;
+      }
+    }
+
+    if _anime.AnimeID == 0 {
+      continue
+    }
+
+    anime = append(anime, &_anime)
+  }
+  
+  return anime, nil
+}
 
 func (f *Fetcher) Do(ctx context.Context, url string, method string, target interface{}, body io.Reader, headers *map[string]string) (*string, error) {
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
