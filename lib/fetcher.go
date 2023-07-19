@@ -46,6 +46,7 @@ func (f *Fetcher) getAnimeEpisode(ctx context.Context, endpoint *string) ([]*mod
 		return nil, err
 	}
 
+  var categoriesID []string
 	var result []*model.Episode
 	for _, item := range resp {
 		var coverURL string
@@ -86,6 +87,9 @@ func (f *Fetcher) getAnimeEpisode(ctx context.Context, endpoint *string) ([]*mod
 			return nil, err
 		}
 
+    strCategoryID := strconv.Itoa(categoryID)
+    categoriesID = append(categoriesID, strCategoryID)
+
 		result = append(result, &model.Episode{
 			ID:      item.ID,
 			Episode: *episode,
@@ -99,6 +103,36 @@ func (f *Fetcher) getAnimeEpisode(ctx context.Context, endpoint *string) ([]*mod
 			CreatedAt: &date,
 		})
 	}
+
+  if len(categoriesID) > 0{
+    type CategoryItem struct {
+      ID    int     `json:"id"`
+      Link  string  `json:"link"`
+    }
+    categoriesEndpoint := fmt.Sprintf("%s/wp-json/wp/v2/categories?type=anime&_fields=id,link&include=%s", os.Getenv("SOURCE_URL"), strings.Join(categoriesID[:],","))
+    var categories []CategoryItem
+    _, err = f.Do(ctx, categoriesEndpoint, http.MethodGet, &categories, nil, nil)
+    if err != nil {
+      return nil, err
+    }
+
+    for _, episode := range result {
+      for _, category := range categories {
+        if episode.Anime.ID != category.ID {
+          continue
+        }
+
+        slug, err := MatchStringByRegex(`http.*\/(.*)\/`, category.Link)
+        if err != nil {
+          log.Error().Err(err).Msg("fetcher.getAnimeEpisode: failed to parse slug from category")
+          return nil, err
+        }
+
+        episode.Anime.Slug = *slug
+        break
+      }
+    }
+  }
 
 	return result, nil
 }
@@ -465,7 +499,14 @@ func (f *Fetcher) GetAnimeBySearch(ctx context.Context, db db.DBInterface, query
     temp.ID = _anime.AnimeID
     temp.Title = _anime.Title
     temp.CoverURL = _anime.CoverURL
-    temp.Slug = strings.Replace(strings.Replace(e.URL, os.Getenv("SOURCE_URL") + "/anime/", "", 1) , "/", "", 1) 
+
+    slug, err := MatchStringByRegex(`http.*\/(.*)\/`, eLink)
+    if err != nil {
+      log.Error().Err(err).Msg("fetcher.GetAnimeBySearch: failed to parse slug")
+      return nil, err
+    }
+    temp.Slug = *slug
+
     if err := temp.Save(db, true); err != nil {
       return nil, err
     }
