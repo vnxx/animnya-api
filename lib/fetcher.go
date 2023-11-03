@@ -59,23 +59,24 @@ func (f *Fetcher) getAnimeEpisode(ctx context.Context, endpoint *string) ([]*mod
 			categoryID = item.Categories[0]
 		}
 
-		title, err := MatchStringByRegex(`(.*).(?:Episode.*)`, item.Title.Rendered)
+		title, err := MatchStringByRegex(`(.*?)(?:\s+Epsiode|Episode)`, item.Title.Rendered)
 		if err != nil {
 			log.Error().Err(err).Msg("fetcher.getAnimeEpisode: failed to parse title")
 			return nil, err
 		}
 
-		episode, err := MatchStringByRegex(`(?:Episode.)(.*)`, item.Title.Rendered)
+		episode, err := MatchStringByRegex(`(?:Episode.|Epsiode.)(.*)`, item.Title.Rendered)
 		if err != nil {
 			log.Error().Err(err).Msg("fetcher.getAnimeEpisode: failed to parse episode")
 			return nil, err
 		}
     // probably this is a movie: title-movie
     if episode == nil {
+      fmt.Println(item.Title)
       continue
     }
 
-		slug, err := MatchStringByRegex(`(.*)-(?:episode.*)`, item.Slug)
+		slug, err := MatchStringByRegex(`(.*)-(?:episode.|epsiode.*)`, item.Slug)
 		if err != nil {
 			log.Error().Err(err).Msg("fetcher.getAnimeEpisode: failed to parse slug")
 			return nil, err
