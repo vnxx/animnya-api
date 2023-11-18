@@ -187,7 +187,7 @@ func (h *Handler) Anime(c *fiber.Ctx) error {
 }
 
 func (h *Handler) AnimeCover(c *fiber.Ctx) error {
-  c.Response().Header.Add("Cache-Time", "0")
+	c.Response().Header.Add("Cache-Time", "0")
 	c.Set("Content-Type", "image/jpeg")
 
 	animeID := c.Params("anime_id")
@@ -306,9 +306,9 @@ func (h *Handler) Episode(c *fiber.Ctx) error {
 			}
 		}
 
-    if err := anime.Save(h.DB, true); err != nil {
-      log.Error().Err(err).Msg("anime.Episode: failed to save episode")
-    }
+		if err := anime.Save(h.DB, true); err != nil {
+			log.Error().Err(err).Msg("anime.Episode: failed to save episode")
+		}
 		result.Data.Watches = watches
 	}
 
@@ -321,12 +321,12 @@ func (h *Handler) Episode(c *fiber.Ctx) error {
 }
 
 func (h *Handler) SearchAnime(c *fiber.Ctx) error {
-  c.Response().Header.Add("Cache-Time", "0")
+	c.Response().Header.Add("Cache-Time", "0")
 	var result struct {
 		Data  []*model.SimpleAnime `json:"data"`
 		Error any                  `json:"error"`
 	}
-  result.Data = []*model.SimpleAnime{}
+	result.Data = []*model.SimpleAnime{}
 
 	query := c.Query("query")
 	if query == "" || !(len(query) >= 3) {

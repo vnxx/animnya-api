@@ -24,7 +24,7 @@ type FetcherInterface interface {
 	GetAllEpisodesByAnimeID(ctx context.Context, animeID string) ([]*model.Episode, error) // deprecated: use GetAnimeDetailByPostID instead
 	GetAnimeDetailByAnimeSlug(ctx context.Context, animeSlug *string) (*model.Anime, error)
 	GetAnimeDetailByPostID(ctx context.Context, postID *int) (*model.Anime, error)
-  GetAnimeBySearch(ctc context.Context, db db.DBInterface, query *string) ([]*model.SimpleAnime, error)
+	GetAnimeBySearch(ctc context.Context, db db.DBInterface, query *string) ([]*model.SimpleAnime, error)
 	// GetAnimePostIDByAnimeSlug(ctx context.Context, animeSlug *string) (*int, error)
 	GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(ctx context.Context, episodeID *int, episodeSlug *string) ([]*model.Watch, error)
 }
@@ -46,7 +46,7 @@ func (f *Fetcher) getAnimeEpisode(ctx context.Context, endpoint *string) ([]*mod
 		return nil, err
 	}
 
-  var categoriesID []string
+	var categoriesID []string
 	var result []*model.Episode
 	for _, item := range resp {
 		var coverURL string
@@ -70,11 +70,11 @@ func (f *Fetcher) getAnimeEpisode(ctx context.Context, endpoint *string) ([]*mod
 			log.Error().Err(err).Msg("fetcher.getAnimeEpisode: failed to parse episode")
 			return nil, err
 		}
-    // probably this is a movie: title-movie
-    if episode == nil {
-      fmt.Println(item.Title)
-      continue
-    }
+		// probably this is a movie: title-movie
+		if episode == nil {
+			fmt.Println(item.Title)
+			continue
+		}
 
 		slug, err := MatchStringByRegex(`(.*)-(?:episode.|epsiode.*)`, item.Slug)
 		if err != nil {
@@ -88,8 +88,8 @@ func (f *Fetcher) getAnimeEpisode(ctx context.Context, endpoint *string) ([]*mod
 			return nil, err
 		}
 
-    strCategoryID := strconv.Itoa(categoryID)
-    categoriesID = append(categoriesID, strCategoryID)
+		strCategoryID := strconv.Itoa(categoryID)
+		categoriesID = append(categoriesID, strCategoryID)
 
 		result = append(result, &model.Episode{
 			ID:      item.ID,
@@ -105,35 +105,35 @@ func (f *Fetcher) getAnimeEpisode(ctx context.Context, endpoint *string) ([]*mod
 		})
 	}
 
-  if len(categoriesID) > 0{
-    type CategoryItem struct {
-      ID    int     `json:"id"`
-      Link  string  `json:"link"`
-    }
-    categoriesEndpoint := fmt.Sprintf("%s/wp-json/wp/v2/categories?type=anime&_fields=id,link&include=%s", os.Getenv("SOURCE_URL"), strings.Join(categoriesID[:],","))
-    var categories []CategoryItem
-    _, err = f.Do(ctx, categoriesEndpoint, http.MethodGet, &categories, nil, nil)
-    if err != nil {
-      return nil, err
-    }
+	if len(categoriesID) > 0 {
+		type CategoryItem struct {
+			ID   int    `json:"id"`
+			Link string `json:"link"`
+		}
+		categoriesEndpoint := fmt.Sprintf("%s/wp-json/wp/v2/categories?type=anime&_fields=id,link&include=%s", os.Getenv("SOURCE_URL"), strings.Join(categoriesID[:], ","))
+		var categories []CategoryItem
+		_, err = f.Do(ctx, categoriesEndpoint, http.MethodGet, &categories, nil, nil)
+		if err != nil {
+			return nil, err
+		}
 
-    for _, episode := range result {
-      for _, category := range categories {
-        if episode.Anime.ID != category.ID {
-          continue
-        }
+		for _, episode := range result {
+			for _, category := range categories {
+				if episode.Anime.ID != category.ID {
+					continue
+				}
 
-        slug, err := MatchStringByRegex(`http.*\/(.*)\/`, category.Link)
-        if err != nil {
-          log.Error().Err(err).Msg("fetcher.getAnimeEpisode: failed to parse slug from category")
-          return nil, err
-        }
+				slug, err := MatchStringByRegex(`http.*\/(.*)\/`, category.Link)
+				if err != nil {
+					log.Error().Err(err).Msg("fetcher.getAnimeEpisode: failed to parse slug from category")
+					return nil, err
+				}
 
-        episode.Anime.Slug = *slug
-        break
-      }
-    }
-  }
+				episode.Anime.Slug = *slug
+				break
+			}
+		}
+	}
 
 	return result, nil
 }
@@ -380,7 +380,7 @@ func (f *Fetcher) GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(ctx context.Context
 		return nil, fmt.Errorf("EPISODE_ID_NOT_FOUND")
 	}
 
-	endpoint := fmt.Sprintf("%s/%s", os.Getenv("SOURCE_URL") , *episodeSlug)
+	endpoint := fmt.Sprintf("%s/%s", os.Getenv("SOURCE_URL"), *episodeSlug)
 	body, err := f.Do(ctx, endpoint, http.MethodGet, nil, nil, nil)
 	if err != nil {
 		return nil, err
@@ -421,7 +421,7 @@ func (f *Fetcher) GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(ctx context.Context
 			continue
 		}
 		if streamURL == nil {
-      log.Error().Err(err).Msg("fetcher.GetEpisodeWatchesByEpisodeIDAndEpisodeSlug: failed to parse streamURL")
+			log.Error().Err(err).Msg("fetcher.GetEpisodeWatchesByEpisodeIDAndEpisodeSlug: failed to parse streamURL")
 			continue
 		}
 
@@ -440,83 +440,82 @@ func (f *Fetcher) GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(ctx context.Context
 }
 
 func (f *Fetcher) GetAnimeBySearch(ctx context.Context, db db.DBInterface, query *string) ([]*model.SimpleAnime, error) {
+	anime := []*model.SimpleAnime{}
 	if query == nil {
-		return nil, nil
+		return anime, nil
 	}
 
-  var anime []*model.SimpleAnime
+	nonce := "0854d2c17b"
+	type EasthemeItemData struct {
+		Genre string `json:"genre"`
+		Type  string `json:"type"`
+		Score string `json:"score"`
+	}
 
-  nonce := "0854d2c17b"
-  type EasthemeItemData struct {
-    Genre string  `json:"genre"`
-    Type  string  `json:"type"`
-    Score string  `json:"score"`
-  }
-
-  type EasthemeItem struct {
-    Title string  `json:"title"`
-    URL   string  `json:"url"`
-    Img   string  `json:"img"`
-    Data  EasthemeItemData `json:"data"`    
-  }
+	type EasthemeItem struct {
+		Title string           `json:"title"`
+		URL   string           `json:"url"`
+		Img   string           `json:"img"`
+		Data  EasthemeItemData `json:"data"`
+	}
 
 	easthemeEndpoint := fmt.Sprintf("%s/wp-json/eastheme/search?nonce=%s&keyword=%s", os.Getenv("SOURCE_URL"), nonce, *query)
- 	var easthemeMap = make(map[string]EasthemeItem)
+	var easthemeMap = make(map[string]EasthemeItem)
 	_, err := f.Do(ctx, easthemeEndpoint, http.MethodGet, &easthemeMap, nil, nil)
 	if err != nil {
 		return nil, err
-	} 
+	}
 
-  type CategoryItem struct {
-    ID    int     `json:"id"`
-    Link  string  `json:"link"`
-    Name  string  `json:"name"`
-  }
-  categoriesEndpoint := fmt.Sprintf("%s/wp-json/wp/v2/categories?type=anime&_fields=id,anime,link&search=%s", os.Getenv("SOURCE_URL"), *query)
-  var categories []CategoryItem
-  _, err = f.Do(ctx, categoriesEndpoint, http.MethodGet, &categories, nil, nil)
-  if err != nil {
-    return nil, err
-  }
+	type CategoryItem struct {
+		ID   int    `json:"id"`
+		Link string `json:"link"`
+		Name string `json:"name"`
+	}
+	categoriesEndpoint := fmt.Sprintf("%s/wp-json/wp/v2/categories?type=anime&_fields=id,anime,link&search=%s", os.Getenv("SOURCE_URL"), *query)
+	var categories []CategoryItem
+	_, err = f.Do(ctx, categoriesEndpoint, http.MethodGet, &categories, nil, nil)
+	if err != nil {
+		return nil, err
+	}
 
-  for _, e := range easthemeMap {
-    var _anime model.SimpleAnime
-    _anime.Title = e.Title
-    _anime.CoverURL = e.Img
-    
-    eLink := strings.Replace(e.URL, "/anime", "", 1)
-    for _, c := range categories {
-      if(eLink == c.Link){
-        _anime.AnimeID = c.ID
-        break;
-      }
-    }
+	for _, e := range easthemeMap {
+		var _anime model.SimpleAnime
+		_anime.Title = e.Title
+		_anime.CoverURL = e.Img
 
-    if _anime.AnimeID == 0 {
-      continue
-    }
+		eLink := strings.Replace(e.URL, "/anime", "", 1)
+		for _, c := range categories {
+			if eLink == c.Link {
+				_anime.AnimeID = c.ID
+				break
+			}
+		}
 
-    var temp model.Anime
-    temp.ID = _anime.AnimeID
-    temp.Title = _anime.Title
-    temp.CoverURL = _anime.CoverURL
+		if _anime.AnimeID == 0 {
+			continue
+		}
 
-    slug, err := MatchStringByRegex(`http.*\/(.*)\/`, eLink)
-    if err != nil {
-      log.Error().Err(err).Msg("fetcher.GetAnimeBySearch: failed to parse slug")
-      return nil, err
-    }
-    temp.Slug = *slug
+		var temp model.Anime
+		temp.ID = _anime.AnimeID
+		temp.Title = _anime.Title
+		temp.CoverURL = _anime.CoverURL
 
-    if err := temp.Save(db, true); err != nil {
-      return nil, err
-    }
+		slug, err := MatchStringByRegex(`http.*\/(.*)\/`, eLink)
+		if err != nil {
+			log.Error().Err(err).Msg("fetcher.GetAnimeBySearch: failed to parse slug")
+			return nil, err
+		}
+		temp.Slug = *slug
 
-    _anime.CoverURL = fmt.Sprintf(os.Getenv("API_URL") + "/anime/%d/cover", _anime.AnimeID)
-    anime = append(anime, &_anime)
-  }
-  
-  return anime, nil
+		if err := temp.Save(db, true); err != nil {
+			return nil, err
+		}
+
+		_anime.CoverURL = fmt.Sprintf(os.Getenv("API_URL")+"/anime/%d/cover", _anime.AnimeID)
+		anime = append(anime, &_anime)
+	}
+
+	return anime, nil
 }
 
 func (f *Fetcher) Do(ctx context.Context, url string, method string, target interface{}, body io.Reader, headers *map[string]string) (*string, error) {
@@ -540,7 +539,7 @@ func (f *Fetcher) Do(ctx context.Context, url string, method string, target inte
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-    log.Error().Err(err).Msg("fetcher.Do: failed to do request, respose status code: " + fmt.Sprintf("%d", resp.StatusCode)) 
+		log.Error().Err(err).Msg("fetcher.Do: failed to do request, respose status code: " + fmt.Sprintf("%d", resp.StatusCode))
 		return nil, fmt.Errorf("STATUS_CODE_NOT_OK")
 	}
 
