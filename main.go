@@ -29,7 +29,7 @@ func main() {
 	}))
 	app.Use(cache.New(cache.Config{
 		ExpirationGenerator: func(c *fiber.Ctx, cfg *cache.Config) time.Duration {
-			expiration := time.Minute * 10
+			expiration := time.Hour * 2
 			newCacheTime, _ := strconv.Atoi(c.GetRespHeader("Cache-Time", fmt.Sprintf("%.0f", expiration.Seconds())))
 			return time.Second * time.Duration(newCacheTime)
 		},
