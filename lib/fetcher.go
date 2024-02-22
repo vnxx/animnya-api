@@ -345,32 +345,6 @@ func (f *Fetcher) GetAnimeDetailByPostID(ctx context.Context, postID *int) (*mod
 	return &anime, nil
 }
 
-// func (f *Fetcher) GetAnimePostIDByAnimeSlug(ctx context.Context, animeSlug *string) (*int, error) {
-// 	if animeSlug == nil {
-// 		return nil, nil
-// 	}
-
-// 	endpoint := "https://samehadaku.run/anime/" + *animeSlug
-// 	body, err := f.Do(ctx, endpoint, http.MethodGet, nil, nil, nil)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	_postID, err := MatchStringByRegex(`id="post-(.*)" clas`, *body)
-// 	if err != nil {
-// 		log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse post id")
-// 		return nil, err
-// 	}
-
-// 	postID, err := strconv.Atoi(*_postID)
-// 	if err != nil {
-// 		log.Error().Err(err).Msg("fetcher.GetAnimeDetailByAnimeSlug: failed to parse post id")
-// 		return nil, err
-// 	}
-
-// 	return &postID, nil
-// }
-
 func (f *Fetcher) GetEpisodeWatchesByEpisodeIDAndEpisodeSlug(ctx context.Context, episodeID *int, episodeSlug *string) ([]*model.Watch, error) {
 	if episodeSlug == nil {
 		return nil, fmt.Errorf("EPISODE_SLUG_NOT_FOUND")
@@ -518,8 +492,15 @@ func (f *Fetcher) GetAnimeBySearch(ctx context.Context, db db.DBInterface, query
 	return anime, nil
 }
 
-func (f *Fetcher) Do(ctx context.Context, url string, method string, target interface{}, body io.Reader, headers *map[string]string) (*string, error) {
-	req, err := http.NewRequestWithContext(ctx, method, url, body)
+func (f *Fetcher) Do(ctx context.Context, _url string, method string, target interface{}, body io.Reader, headers *map[string]string) (*string, error) {
+	var completeURL string
+	if os.Getenv("ZENROWS_KEY") != "" {
+		completeURL = fmt.Sprintf("https://api.zenrows.com/v1/?apikey=%s&url=%s", os.Getenv("ZENROWS_KEY"), url.QueryEscape(_url))
+	} else {
+		completeURL = _url
+	}
+
+	req, err := http.NewRequestWithContext(ctx, method, completeURL, body)
 	if err != nil {
 		log.Error().Err(err).Msg("fetcher.Do: failed to create request")
 		return nil, err
