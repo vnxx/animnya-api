@@ -1,0 +1,397 @@
+{
+  "data": [
+    {
+      "id": 38503,
+      "slug": "one-piece-episode-1119",
+      "anime": {
+        "id": 64,
+        "title": "One Piece",
+        "slug": "",
+        "cover_url": "http://localhost:9999/api/anime/64/cover"
+      },
+      "episode": "1119",
+      "created_at": "2024-09-15T10:11:33Z"
+    },
+    {
+      "id": 38474,
+      "slug": "karasu-wa-aruji-wo-erabanai-episode-19",
+      "anime": {
+        "id": 2604,
+        "title": "Karasu wa Aruji wo Erabanai ",
+        "slug": "karasu-wa-aruji-wo-erabanai",
+        "cover_url": "http://localhost:9999/api/anime/2604/cover",
+        "episodes": [
+          {
+            "id": 38474,
+            "slug": "karasu-wa-aruji-wo-erabanai-episode-19",
+            "episode": "19",
+            "created_at": "2024-09-15T03:38:13Z"
+          }
+        ]
+      },
+      "episode": "19",
+      "created_at": "2024-09-15T03:38:13Z"
+    },
+    {
+      "id": 38473,
+      "slug": "shoushimin-series-episode-10",
+      "anime": {
+        "id": 2679,
+        "title": "Shoushimin Series ",
+        "slug": "shoushimin-series",
+        "cover_url": "http://localhost:9999/api/anime/2679/cover",
+        "episodes": [
+          {
+            "id": 38473,
+            "slug": "shoushimin-series-episode-10",
+            "episode": "10",
+            "created_at": "2024-09-15T02:45:10Z"
+          }
+        ]
+      },
+      "episode": "10",
+      "created_at": "2024-09-15T02:45:10Z"
+    },
+    {
+      "id": 38472,
+      "slug": "atri-my-dear-moments-epsiode-10",
+      "anime": {
+        "id": 2655,
+        "title": "Atri My Dear Moments",
+        "slug": "atri-my-dear-moments",
+        "cover_url": "http://localhost:9999/api/anime/2655/cover",
+        "episodes": [
+          {
+            "id": 38472,
+            "slug": "atri-my-dear-moments-epsiode-10",
+            "episode": "10",
+            "created_at": "2024-09-15T02:12:41Z"
+          }
+        ]
+      },
+      "episode": "10",
+      "created_at": "2024-09-15T02:12:41Z"
+    },
+    {
+      "id": 38490,
+      "slug": "the-fable-episode-23",
+      "anime": {
+        "id": 2610,
+        "title": "The Fable ",
+        "slug": "the-fable",
+        "cover_url": "http://localhost:9999/api/anime/2610/cover",
+        "episodes": [
+          {
+            "id": 38490,
+            "slug": "the-fable-episode-23",
+            "episode": "23",
+            "created_at": "2024-09-15T02:07:07Z"
+          }
+        ]
+      },
+      "episode": "23",
+      "created_at": "2024-09-15T02:07:07Z"
+    },
+    {
+      "id": 38479,
+      "slug": "make-heroine-ga-oosugiru-episode-10",
+      "anime": {
+        "id": 2715,
+        "title": "Make Heroine ga Oosugiru ",
+        "slug": "make-heroine-ga-oosugiru",
+        "cover_url": "http://localhost:9999/api/anime/2715/cover",
+        "episodes": [
+          {
+            "id": 38479,
+            "slug": "make-heroine-ga-oosugiru-episode-10",
+            "episode": "10",
+            "created_at": "2024-09-15T01:48:52Z"
+          }
+        ]
+      },
+      "episode": "10",
+      "created_at": "2024-09-15T01:48:52Z"
+    },
+    {
+      "id": 38488,
+      "slug": "nige-jouzu-no-wakagimi-episode-10",
+      "anime": {
+        "id": 2682,
+        "title": "Nige Jouzu no Wakagimi ",
+        "slug": "nige-jouzu-no-wakagimi",
+        "cover_url": "http://localhost:9999/api/anime/2682/cover",
+        "episodes": [
+          {
+            "id": 38488,
+            "slug": "nige-jouzu-no-wakagimi-episode-10",
+            "episode": "10",
+            "created_at": "2024-09-15T01:15:20Z"
+          }
+        ]
+      },
+      "episode": "10",
+      "created_at": "2024-09-15T01:15:20Z"
+    },
+    {
+      "id": 38471,
+      "slug": "tensui-no-sakuna-hime-epsiode-11",
+      "anime": {
+        "id": 2677,
+        "title": "Tensui no Sakuna-hime",
+        "slug": "tensui-no-sakuna-hime",
+        "cover_url": "http://localhost:9999/api/anime/2677/cover",
+        "episodes": [
+          {
+            "id": 38471,
+            "slug": "tensui-no-sakuna-hime-epsiode-11",
+            "episode": "11",
+            "created_at": "2024-09-15T00:37:59Z"
+          }
+        ]
+      },
+      "episode": "11",
+      "created_at": "2024-09-15T00:37:59Z"
+    },
+    {
+      "id": 38484,
+      "slug": "monogatari-series-off-monster-season-episode-9",
+      "anime": {
+        "id": 2676,
+        "title": "Monogatari Series: Off \u0026amp; Monster Season ",
+        "slug": "monogatari-series-off-monster-season",
+        "cover_url": "http://localhost:9999/api/anime/2676/cover",
+        "episodes": [
+          {
+            "id": 38484,
+            "slug": "monogatari-series-off-monster-season-episode-9",
+            "episode": "9",
+            "created_at": "2024-09-15T00:29:28Z"
+          }
+        ]
+      },
+      "episode": "9",
+      "created_at": "2024-09-15T00:29:28Z"
+    },
+    {
+      "id": 38486,
+      "slug": "naze-boku-no-sekai-wo-daremo-oboeteinai-no-ka-episode-10",
+      "anime": {
+        "id": 2706,
+        "title": "Naze Boku no Sekai wo Daremo Oboeteinai no ka? ",
+        "slug": "naze-boku-no-sekai-wo-daremo-oboeteinai-no-ka",
+        "cover_url": "http://localhost:9999/api/anime/2706/cover",
+        "episodes": [
+          {
+            "id": 38486,
+            "slug": "naze-boku-no-sekai-wo-daremo-oboeteinai-no-ka-episode-10",
+            "episode": "10",
+            "created_at": "2024-09-14T23:54:10Z"
+          }
+        ]
+      },
+      "episode": "10",
+      "created_at": "2024-09-14T23:54:10Z"
+    },
+    {
+      "id": 38470,
+      "slug": "mob-kara-hajimaru-tansaku-eiyuutan-episode-12-end",
+      "anime": {
+        "id": 2680,
+        "title": "Mob kara Hajimaru Tansaku Eiyuutan ",
+        "slug": "mob-kara-hajimaru-tansaku-eiyuutan",
+        "cover_url": "http://localhost:9999/api/anime/2680/cover",
+        "episodes": [
+          {
+            "id": 38470,
+            "slug": "mob-kara-hajimaru-tansaku-eiyuutan-episode-12-end",
+            "episode": "12 [END]",
+            "created_at": "2024-09-14T22:25:29Z"
+          }
+        ]
+      },
+      "episode": "12 [END]",
+      "created_at": "2024-09-14T22:25:29Z"
+    },
+    {
+      "id": 38467,
+      "slug": "madougushi-dahliya-wa-utsumukanai-episode-11",
+      "anime": {
+        "id": 2674,
+        "title": "Madougushi Dahliya wa Utsumukanai ",
+        "slug": "madougushi-dahliya-wa-utsumukanai",
+        "cover_url": "http://localhost:9999/api/anime/2674/cover",
+        "episodes": [
+          {
+            "id": 38467,
+            "slug": "madougushi-dahliya-wa-utsumukanai-episode-11",
+            "episode": "11",
+            "created_at": "2024-09-14T21:29:00Z"
+          }
+        ]
+      },
+      "episode": "11",
+      "created_at": "2024-09-14T21:29:00Z"
+    },
+    {
+      "id": 38463,
+      "slug": "boku-no-hero-academia-season-7-episode-17",
+      "anime": {
+        "id": 2635,
+        "title": "Boku no Hero Academia Season 7 ",
+        "slug": "boku-no-hero-academia-season-7",
+        "cover_url": "http://localhost:9999/api/anime/2635/cover",
+        "episodes": [
+          {
+            "id": 38463,
+            "slug": "boku-no-hero-academia-season-7-episode-17",
+            "episode": "17",
+            "created_at": "2024-09-14T17:58:30Z"
+          }
+        ]
+      },
+      "episode": "17",
+      "created_at": "2024-09-14T17:58:30Z"
+    },
+    {
+      "id": 38459,
+      "slug": "kono-sekai-wa-fukanzen-sugiru-episode-11",
+      "anime": {
+        "id": 2672,
+        "title": "Kono Sekai wa Fukanzen Sugiru ",
+        "slug": "kono-sekai-wa-fukanzen-sugiru",
+        "cover_url": "http://localhost:9999/api/anime/2672/cover",
+        "episodes": [
+          {
+            "id": 38459,
+            "slug": "kono-sekai-wa-fukanzen-sugiru-episode-11",
+            "episode": "11",
+            "created_at": "2024-09-14T03:12:56Z"
+          }
+        ]
+      },
+      "episode": "11",
+      "created_at": "2024-09-14T03:12:56Z"
+    },
+    {
+      "id": 38453,
+      "slug": "dungeon-no-naka-no-hito-episode-10",
+      "anime": {
+        "id": 2670,
+        "title": "Dungeon no Naka no Hito ",
+        "slug": "dungeon-no-naka-no-hito",
+        "cover_url": "http://localhost:9999/api/anime/2670/cover",
+        "episodes": [
+          {
+            "id": 38453,
+            "slug": "dungeon-no-naka-no-hito-episode-10",
+            "episode": "10",
+            "created_at": "2024-09-14T03:03:03Z"
+          }
+        ]
+      },
+      "episode": "10",
+      "created_at": "2024-09-14T03:03:03Z"
+    },
+    {
+      "id": 38451,
+      "slug": "nierautomata-ver1-1a-episode-22",
+      "anime": {
+        "id": 2669,
+        "title": "NieR:Automata Ver1.1a ",
+        "slug": "nierautomata-ver1-1a",
+        "cover_url": "http://localhost:9999/api/anime/2669/cover",
+        "episodes": [
+          {
+            "id": 38451,
+            "slug": "nierautomata-ver1-1a-episode-22",
+            "episode": "22",
+            "created_at": "2024-09-14T01:28:55Z"
+          }
+        ]
+      },
+      "episode": "22",
+      "created_at": "2024-09-14T01:28:55Z"
+    },
+    {
+      "id": 38443,
+      "slug": "bye-bye-earth-episode-10-end",
+      "anime": {
+        "id": 2708,
+        "title": "Bye Bye, Earth ",
+        "slug": "bye-bye-earth",
+        "cover_url": "http://localhost:9999/api/anime/2708/cover",
+        "episodes": [
+          {
+            "id": 38443,
+            "slug": "bye-bye-earth-episode-10-end",
+            "episode": "10 [END]",
+            "created_at": "2024-09-14T00:17:31Z"
+          }
+        ]
+      },
+      "episode": "10 [END]",
+      "created_at": "2024-09-14T00:17:31Z"
+    },
+    {
+      "id": 38442,
+      "slug": "2-5-jigen-no-ririsa-episode-11",
+      "anime": {
+        "id": 2668,
+        "title": "2.5-jigen no Ririsa ",
+        "slug": "2-5-jigen-no-ririsa",
+        "cover_url": "http://localhost:9999/api/anime/2668/cover",
+        "episodes": [
+          {
+            "id": 38442,
+            "slug": "2-5-jigen-no-ririsa-episode-11",
+            "episode": "11",
+            "created_at": "2024-09-14T00:07:52Z"
+          }
+        ]
+      },
+      "episode": "11",
+      "created_at": "2024-09-14T00:07:52Z"
+    },
+    {
+      "id": 38448,
+      "slug": "tensei-shitara-slime-datta-ken-season-3-episode-22",
+      "anime": {
+        "id": 2580,
+        "title": "Tensei shitara Slime Datta Ken Season 3 ",
+        "slug": "tensei-shitara-slime-datta-ken-season-3",
+        "cover_url": "http://localhost:9999/api/anime/2580/cover",
+        "episodes": [
+          {
+            "id": 38448,
+            "slug": "tensei-shitara-slime-datta-ken-season-3-episode-22",
+            "episode": "22",
+            "created_at": "2024-09-13T23:48:25Z"
+          }
+        ]
+      },
+      "episode": "22",
+      "created_at": "2024-09-13T23:48:25Z"
+    },
+    {
+      "id": 38431,
+      "slug": "hazure-waku-no-joutai-ijou-skill-episode-10",
+      "anime": {
+        "id": 2663,
+        "title": "Hazure waku no Joutai Ijou Skill ",
+        "slug": "hazure-waku-no-joutai-ijou-skill-de-saikyou-ni-natta-ore-ga-subete-wo-juurin-suru-made",
+        "cover_url": "http://localhost:9999/api/anime/2663/cover",
+        "episodes": [
+          {
+            "id": 38431,
+            "slug": "hazure-waku-no-joutai-ijou-skill-episode-10",
+            "episode": "10 V2",
+            "created_at": "2024-09-13T03:12:37Z"
+          }
+        ]
+      },
+      "episode": "10 V2",
+      "created_at": "2024-09-13T03:12:37Z"
+    }
+  ],
+  "error": null
+}

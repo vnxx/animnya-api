@@ -1,46 +1,35 @@
-name: Deploy
-
+name: publish
 on:
   push:
-    branches: 
-     - main
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: vnxx/animnya-api.bykevin.work
 
 jobs:
-  deployment:
+  build-and-push-image:
+    name: publish image
     runs-on: ubuntu-latest
+    # runs-on: blacksmith-4vcpu-ubuntu-2204
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.19
-      
-      - name: Build
-        run: go build
-        
-      - name: Publish
-        uses: appleboy/scp-action@master
-        with:
-          source: "animenya.site"
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          port: ${{ secrets.SSH_PORT }}
-          target: ${{ secrets.SSH_DIR }}
-          key: ${{ secrets.SSH_KEY }}
-      
-      - name: Restart Server
-        uses: appleboy/ssh-action@master
-        with: 
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            cd ${{ secrets.SSH_DIR }}
-            ./stop.sh
-            rm -rf ./log.txt
-            ./run.sh 
-            exit
-        
+      - name: Login
+        run: |
+          echo ${{ secrets.PAT }} | docker login ghcr.io -u vnxx --password-stdin
+
+      - name: Get short SHA
+        id: slug
+        run: echo "SHA7=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_ENV
+
+      - name: Build and Publish
+        run: |
+          docker build . --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.head_ref || github.ref_name }}-${{ env.SHA7 }} --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} --all-tags
+
+      - name: Deploy to Coolify
+        run: |
+          curl --request GET '${{ secrets.COOLIFY_WEBHOOK }}' --header 'Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}'
