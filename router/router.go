@@ -6,12 +6,11 @@ import (
 )
 
 func SetupRoutes(app *fiber.App, handler *handler.Handler) {
-	api := app.Group("/api")
-	api.Get("/ping", func(c *fiber.Ctx) error {
+	app.Get("/ping", func(c *fiber.Ctx) error {
 		return c.SendString("pong")
 	})
 
-	anime := api.Group("/anime")
+	anime := app.Group("/anime")
 	anime.Get("/", handler.LatestAnimeEpisode)
 	anime.Get("/search", handler.SearchAnime)
 	anime.Get("/:anime_id", handler.Anime)
